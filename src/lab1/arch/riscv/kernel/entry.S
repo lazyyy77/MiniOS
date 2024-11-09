@@ -34,13 +34,17 @@ _traps:
     sd x29, 216(sp)
     sd x30, 224(sp)
     sd x31, 232(sp)
-    csrr a0, sepc
+    csrr a0, scause
     sd a0, 240(sp)
+    csrr a1, sepc
+    sd a1, 248(sp)
 
     jal x1, trap_handler
 
+    ld a1, 248(sp)
+    csrw sepc, a1
     ld a0, 240(sp)
-    csrw sepc, a0
+    csrw scause, a0
     ld x31, 232(sp)
     ld x30, 224(sp)
     ld x29, 216(sp)

@@ -1,5 +1,5 @@
-#include "mm.h"
-#include "defs.h"
+#include "../include/mm.h"
+#include "../include/defs.h"
 #include "string.h"
 #include "printk.h"
 

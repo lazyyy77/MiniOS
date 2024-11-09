@@ -5,10 +5,16 @@ boot_stack:
     .globl boot_stack_top
 boot_stack_top:    
     .extern start_kernel
+    .extern mm_init             # add in lab2
+    .extern task_init           # add in lab2
     .section .text.init
     .globl _start
 _start:
 
+    la sp, boot_stack_top # initialize the stack_pointer
+    jal x1, mm_init
+    jal x1, task_init
+    
     la a0, _traps
     csrw stvec, a0
 
@@ -30,7 +36,6 @@ _start:
     li a0, (1 << 1) # according to the brochure, SIE of SSTATUS is on bit 1
     csrs sstatus, a0
 
-    la sp, boot_stack_top # initialize the stack_pointer
     jal x1, start_kernel # jump to the start_kernel function
 
 

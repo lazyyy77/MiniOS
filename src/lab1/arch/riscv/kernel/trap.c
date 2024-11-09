@@ -15,7 +15,8 @@ void trap_handler(uint64_t scause, uint64_t sepc) {
     uint64_t myscause;
     
     // asm volatile("csrr %0, scause" : "=r"(myscause)); 
-    myscause = csr_read(scause);
+    // myscause = csr_read(scause);
+    myscause = scause;
     if (myscause & (1ull << 63)) {
         if (myscause & 0x5) {
             printk("[S] is time interrupt\n");

@@ -34,13 +34,17 @@ _traps:
     sd x29, 216(sp)
     sd x30, 224(sp)
     sd x31, 232(sp)
-    csrr a0, sepc
+    csrr a0, scause
     sd a0, 240(sp)
+    csrr a1, sepc
+    sd a1, 248(sp)
 
     jal x1, trap_handler
 
+    ld a1, 248(sp)
+    csrw sepc, a1
     ld a0, 240(sp)
-    csrw sepc, a0
+    csrw scause, a0
     ld x31, 232(sp)
     ld x30, 224(sp)
     ld x29, 216(sp)
@@ -78,3 +82,48 @@ _traps:
     # 2. call trap_handler
     # 3. restore sepc and 32 registers (x2(sp) should be restore last) from stack
     # 4. return from trap
+
+    .extern dummy
+    .globl __dummy
+__dummy:
+    la a0, dummy
+    csrw sepc, a0
+    sret
+
+    .globl __switch_to
+__switch_to:
+
+    sd ra, 32(a0)   # addr of ra_prev
+    sd sp, 40(a0)   # addr of sp_prev
+    sd s0, 48(a0)   # addr of s0_prev to s11_prev
+    sd s1, 56(a0)
+    sd s2, 64(a0)
+    sd s3, 72(a0)
+    sd s4, 80(a0)
+    sd s5, 88(a0)
+    sd s6, 96(a0)
+    sd s7, 104(a0)
+    sd s8, 112(a0)
+    sd s9, 120(a0)
+    sd s10, 128(a0)
+    sd s11, 136(a0)
+
+    ld ra, 32(a1)   # addr of ra_next
+    ld sp, 40(a1)   # addr of sp_next
+    ld s0, 48(a1)   # addr of s0_next to s11_next
+    ld s1, 56(a1)
+    ld s2, 64(a1)
+    ld s3, 72(a1)
+    ld s4, 80(a1)
+    ld s5, 88(a1)
+    ld s6, 96(a1)
+    ld s7, 104(a1)
+    ld s8, 112(a1)
+    ld s9, 120(a1)
+    ld s10, 128(a1)
+    ld s11, 136(a1)
+
+    # save state to prev process
+    # restore state from next process
+
+    ret

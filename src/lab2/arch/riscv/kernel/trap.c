@@ -2,6 +2,7 @@
 #include "printk.h"
 #include "clock.h"
 #include "defs.h"
+#include "proc.h"
 #include <stdint.h>
 
 void trap_handler(uint64_t scause, uint64_t sepc) {
@@ -15,14 +16,16 @@ void trap_handler(uint64_t scause, uint64_t sepc) {
     uint64_t myscause;
     
     // asm volatile("csrr %0, scause" : "=r"(myscause)); 
-    myscause = csr_read(scause);
+    // myscause = csr_read(scause);
+    myscause = scause;
     if (myscause & (1ull << 63)) {
         if (myscause & 0x5) {
-            printk("[S] is time interrupt\n");
+            // printk("[S] is time interrupt\n");
             clock_set_next_event();
-            uint64_t ss = csr_read(sstatus);
-            printk("sstatus is: %ld", ss);
-            csr_write(sscratch, 0x0001001001001000);
+            do_timer();
+            // uint64_t ss = csr_read(sstatus);
+            // printk("sstatus is: %ld", ss);
+            // csr_write(sscratch, 0x0001001001001000);
             return;
         } else {
             printk("not time interrupt\n");
