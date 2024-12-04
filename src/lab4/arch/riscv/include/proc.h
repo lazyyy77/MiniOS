@@ -2,6 +2,12 @@
 #define __PROC_H__
 
 #include "stdint.h"
+#include "stdlib.h"
+#include "printk.h"
+#include "string.h"
+#include "mm.h"
+#include "defs.h"
+#include "elf.h"
 
 #if TEST_SCHED
 #define NR_TASKS (1 + 4)    // 测试时线程数量
@@ -19,6 +25,7 @@ struct thread_struct {
     uint64_t ra;
     uint64_t sp;
     uint64_t s[12];
+    uint64_t sepc, sstatus, sscratch; 
 };
 
 /* 线程数据结构 */
@@ -29,6 +36,7 @@ struct task_struct {
     uint64_t pid;       // 线程 id
 
     struct thread_struct thread;
+    uint64_t *pgd;  // 用户态页表
 };
 
 /* 线程初始化，创建 NR_TASKS 个线程 */

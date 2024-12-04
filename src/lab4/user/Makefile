@@ -3,7 +3,7 @@ C_SRC		= $(sort $(wildcard *.c))
 OBJ			= $(patsubst %.S,%.o,$(ASM_SRC)) $(patsubst %.c,%.o,$(C_SRC))
 
 CFLAG		= -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -fno-builtin -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic,--build-id=none -Wl,--no-relax
-
+			  
 all: uapp.o
 
 uapp.o: uapp.S uapp.bin uapp

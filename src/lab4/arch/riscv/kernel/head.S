@@ -13,7 +13,7 @@ boot_stack_top:
     .globl _start
 _start:
 
-    la sp, boot_stack_top # initialize the stack_pointer
+    la sp, boot_stack_top   # initialize the stack_pointer
     call setup_vm
     call relocate
     jal x1, mm_init
@@ -23,7 +23,7 @@ _start:
     la a0, _traps
     csrw stvec, a0
 
-    li a0, (1 << 5) # according to the brochure, STIE of SIE is on bit 5
+    li a0, (1 << 5)   # according to the brochure, STIE of SIE is on bit 5
     csrs sie, a0
 
 
@@ -39,8 +39,8 @@ _start:
     li a5, 0
     ecall
 
-    li a0, (1 << 1) # according to the brochure, SIE of SSTATUS is on bit 1
-    csrs sstatus, a0
+    # li a0, (1 << 1) # according to the brochure, SIE of SSTATUS is on bit 1
+    # csrs sstatus, a0
 
     jal x1, start_kernel # jump to the start_kernel function
 

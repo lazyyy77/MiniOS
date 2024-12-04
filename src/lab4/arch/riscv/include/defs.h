@@ -20,6 +20,9 @@
 #define PTE_W  (1 << 2)
 #define PTE_X  (1 << 3)
 
+#define USER_START (0x0000000000000000) // user space start virtual address
+#define USER_END (0x0000004000000000) // user space end virtual address
+
 #define csr_read(csr) \
   ({ \
     uint64_t __v; \

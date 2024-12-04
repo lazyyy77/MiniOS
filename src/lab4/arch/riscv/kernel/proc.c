@@ -1,15 +1,39 @@
-#include "mm.h"
-#include "defs.h"
 #include "../include/proc.h"
-#include "stdlib.h"
-#include "printk.h"
 
+
+extern uint64_t swapper_pg_dir[];
+extern char _sramdisk[];
+extern char _eramdisk[];
 extern void __dummy();
 extern void __switch_to(struct task_struct *prev, struct task_struct *next);
+extern void create_mapping(uint64_t *pgtbl, uint64_t va, uint64_t pa, uint64_t sz, uint64_t perm);
 
 struct task_struct *idle;           // idle process
 struct task_struct *current;        // 指向当前运行线程的 task_struct
 struct task_struct *task[NR_TASKS]; // 线程数组，所有的线程都保存在此
+
+void load_program(struct task_struct *task) {
+    Elf64_Ehdr *ehdr = (Elf64_Ehdr *)_sramdisk;
+    Elf64_Phdr *phdrs = (Elf64_Phdr *)(_sramdisk + ehdr->e_phoff);
+    for (int i = 0; i < ehdr->e_phnum; ++i) {
+        Elf64_Phdr *phdr = phdrs + i;
+        if (phdr->p_type == PT_LOAD) {
+            uint64_t page_num = (phdr->p_memsz + phdr->p_offset + PGSIZE - 1) / PGSIZE;
+            // printk("here pagenum %lx\n", page_num);
+            uint64_t *paddr = alloc_pages(page_num);
+            uint64_t *addr = (uint64_t*)(_sramdisk + phdr->p_offset);
+            uint64_t phy_offset = (uint64_t)addr & (PGSIZE - 1);
+            for(uint64_t i = 0; i < phdr->p_memsz; i++){
+                *((char*)paddr + i + phy_offset) = *((char*)addr + i);
+            }
+            for(uint64_t i = phdr->p_filesz; i < phdr->p_memsz; i++){
+                *((char*)paddr + i + phy_offset) = 0;
+            }
+            create_mapping(task->pgd, phdr->p_vaddr - phy_offset, (uint64_t)paddr - PA2VA_OFFSET, phdr->p_memsz, 0x1f);
+        }
+    }
+    task->thread.sepc = ehdr->e_entry;
+}
 
 void task_init() {
     srand(2024);
@@ -36,9 +60,37 @@ void task_init() {
         task[i]->pid = i;
         task[i]->counter = 0;
         task[i]->priority = (rand() % (PRIORITY_MAX - PRIORITY_MIN + 1)) + PRIORITY_MIN;
-        task[i]->thread.sp = (uint64_t)((char*)task[i] + PGSIZE - 1);
-        task[i]->thread.ra = (uint64_t)(&__dummy);
+        task[i]->thread.sp = (uint64_t)((uint64_t)task[i] + PGSIZE);
+        task[i]->thread.ra = (uint64_t)(__dummy);
+        task[i]->thread.sepc = USER_START;
+        task[i]->thread.sstatus = 1 << 18 | 1 << 5;
+        task[i]->thread.sscratch = USER_END;
+        task[i]->pgd = alloc_page();
+        // memcpy(task[i]->pgd, swapper_pg_dir, sizeof(swapper_pg_dir));
+        uint64_t *a = task[i]->pgd;
+        for(uint64_t i = 0; i < 512;i++){
+            a[i] = swapper_pg_dir[i];
+            // printk("i is %lu, swapper is %lx\n", i, swapper_pg_dir[i]);
+        }
 
+        // load_program(task[i]);
+        uint64_t bin_size = (uint64_t)_eramdisk - (uint64_t)_sramdisk;
+        uint64_t page_num = (bin_size + PGSIZE - 1)/PGSIZE;
+
+        uint64_t *addr = alloc_pages(page_num);
+        char *phy_addr = (char*)addr;
+        // memcpy(addr, (uint64_t*)_sramdisk, bin_size);
+        // printk("binsize: %lx, pagenum: %lu\n", bin_size, page_num);
+        for(uint64_t i = 0; i < bin_size; i++){
+            phy_addr[i] = _sramdisk[i];
+        }
+        // printk("%lx\n", *((uint32_t*)phy_addr));
+        // printk("%lx\n", *((uint32_t*)phy_addr + 1));
+        create_mapping(task[i]->pgd, USER_START, (uint64_t)addr - PA2VA_OFFSET, bin_size, 0x1f);
+        uint64_t *user_stack = alloc_page();
+        create_mapping(task[i]->pgd, USER_END - PGSIZE, (uint64_t)user_stack - PA2VA_OFFSET, PGSIZE, 0x1f);
+
+        printk("after task[%lu] mapping\n", i);
     }
 
     // 1. 参考 idle 的设置，为 task[1] ~ task[NR_TASKS - 1] 进行初始化

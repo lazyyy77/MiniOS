@@ -53,7 +53,7 @@ void setup_vm_final() {
     uint64_t erodata = (uint64_t)_erodata - PA2VA_OFFSET;
     uint64_t sdata = (uint64_t)_sdata - PA2VA_OFFSET;
     uint64_t ebss = (uint64_t)_ebss - PA2VA_OFFSET;
-    printk("st: %lx\net: %lx\nsrod: %lx\nerod: %lx\nsd: %lx\neb: %lx\n", stext, etext, srodata, erodata, sdata, ebss);
+    // printk("st: %lx\net: %lx\nsrod: %lx\nerod: %lx\nsd: %lx\neb: %lx\n", stext, etext, srodata, erodata, sdata, ebss);
 
     uint64_t text_size = etext - stext;
     uint64_t rodata_size = erodata - srodata;
@@ -62,14 +62,14 @@ void setup_vm_final() {
     // mapping kernel text X|-|R|V
     phy_swapper_pg_dir = (uint64_t)swapper_pg_dir - PA2VA_OFFSET;
 
-    create_mapping((uint64_t*)phy_swapper_pg_dir, (uint64_t)_stext, stext, text_size, 0xb);
+    create_mapping(swapper_pg_dir, (uint64_t)_stext, stext, text_size, 0xb);
     printk("after first mapping\n");
 
     // mapping kernel rodata -|-|R|V
-    create_mapping((uint64_t*)phy_swapper_pg_dir, (uint64_t)_srodata, srodata, rodata_size, 0x3);
+    create_mapping(swapper_pg_dir, (uint64_t)_srodata, srodata, rodata_size, 0x3);
     printk("after second mapping\n");
     // mapping other memory -|W|R|V
-    create_mapping((uint64_t*)phy_swapper_pg_dir, (uint64_t)_sdata, sdata, remain_size, 0x7);
+    create_mapping(swapper_pg_dir, (uint64_t)_sdata, sdata, remain_size, 0x7);
     printk("after third mapping\n");
 
     // set satp with swapper_pg_dir
@@ -118,24 +118,24 @@ void create_mapping(uint64_t *pgtbl, uint64_t va, uint64_t pa, uint64_t sz, uint
         pte = tmptbl[vpn2];
         // printk("tpmtbl: %lx, p_pte: %lx, pte: %lx\n", tmptbl, p_pte, pte);
         if(pte & 0x1){
-            tmptbl = (uint64_t*)((pte >> 10) << 12);
+            tmptbl = (uint64_t*)(((pte >> 10) << 12) + PA2VA_OFFSET);
         } else {
-            tmptbl = (uint64_t*)kalloc();
+            tmptbl = (uint64_t*)alloc_page();
             // printk("kalloc: %lx\n", tmptbl);
-            tmptbl = (uint64_t*)((uint64_t)tmptbl - PA2VA_OFFSET);
-            *p_pte = (((uint64_t)tmptbl >> 12) << 10) | 0x1;
+            uint64_t* phy_tmptbl = (uint64_t*)((uint64_t)tmptbl - PA2VA_OFFSET);
+            *p_pte = (((uint64_t)phy_tmptbl >> 12) << 10) | 0x1;
             // printk("new pte: %lx\n", *p_pte);
         }
         p_pte = tmptbl + vpn1;
         pte = tmptbl[vpn1];
         // printk("tpmtbl: %lx, p_pte: %lx, pte: %lx\n", tmptbl, p_pte, pte);
         if(pte & 0x1){
-            tmptbl = (uint64_t*)((pte >> 10) << 12);
+            tmptbl = (uint64_t*)(((pte >> 10) << 12) + PA2VA_OFFSET);
         } else {
-            tmptbl = (uint64_t*)kalloc();
+            tmptbl = (uint64_t*)alloc_page();
             // printk("kalloc: %lx\n", tmptbl);
-            tmptbl = (uint64_t*)((uint64_t)tmptbl - PA2VA_OFFSET);
-            *p_pte = (((uint64_t)tmptbl >> 12) << 10) | 0x1;
+            uint64_t* phy_tmptbl = (uint64_t*)((uint64_t)tmptbl - PA2VA_OFFSET);
+            *p_pte = (((uint64_t)phy_tmptbl >> 12) << 10) | 0x1;
             // printk("new pte: %lx\n", *p_pte);
         }
         p_pte = tmptbl + vpn0;

@@ -1,6 +1,10 @@
 // credit: 45gfg9 <45gfg9@45gfg9.net>
 #include "stdio.h"
 #include "syscall.h"
+#include "../include/printk.h"
+
+// extern int printk(const char *, ...);
+
 
 int tail = 0;
 char buffer[1000] = {[0 ... 999] = 0};
@@ -289,8 +293,10 @@ int printf(const char* s, ...) {
     va_list vl;
     va_start(vl, s);
     res = vprintfmt(putc, s, vl);
+    // printk("%lx\n", res);
     long syscall_ret, fd = 1;
     buffer[tail++] = '\0';
+    // printk("inside printf, a0 is %lx, a1 is %lx, a2 is %lx\n", fd, &buffer, tail);
     asm volatile ("li a7, %1\n"
                   "mv a0, %2\n"
                   "mv a1, %3\n"

@@ -8,7 +8,7 @@ OBJDUMP	:=	$(CROSS)objdump
 ISA		:=	rv64imafd
 ABI		:=	lp64
 
-INCLUDE	:=	-I $(shell pwd)/include -I $(shell pwd)/arch/riscv/include
+INCLUDE	:=	-I $(shell pwd)/include -I $(shell pwd)/arch/riscv/include -I $(shell pwd)/user
 CF		:=	-fno-pie -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -fno-builtin -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -g 
 CFLAG	:=	$(CF) $(INCLUDE)
 
@@ -19,6 +19,7 @@ CFLAG   :=  $(CF) $(INCLUDE) -DTEST_SCHED=$(TEST_SCHED)
 all: clean
 	$(MAKE) -C lib all
 	$(MAKE) -C init all
+	$(MAKE) -C user all
 	$(MAKE) -C arch/riscv all
 	@echo -e '\n'Build Finished OK
 
@@ -31,6 +32,7 @@ debug: all
 	@qemu-system-riscv64 -nographic -machine virt -kernel vmlinux -bios default -S -s
 
 clean:
+	$(MAKE) -C user clean
 	$(MAKE) -C lib clean
 	$(MAKE) -C init clean
 	$(MAKE) -C arch/riscv clean
