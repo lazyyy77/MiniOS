@@ -14,6 +14,7 @@
         "cstddef": "c",
         "stdint.h": "c",
         "printk.h": "c",
-        "proc.h": "c"
+        "proc.h": "c",
+        "compare": "c"
     }
 }

@@ -1,6 +1,7 @@
 #include "syscall.h"
-#include "stdint.h"
 #include "stddef.h"
+#include "stdint.h"
+#include "proc.h"
 
 extern struct task_struct *current;
 

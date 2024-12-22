@@ -60,7 +60,7 @@ int main() {
 int global_variable = 0;
 
 int main() {
-    int pid;
+    int pid = 0;
 
     pid = fork();
 
