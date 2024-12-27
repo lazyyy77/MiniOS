@@ -19,7 +19,7 @@ void do_page_fault(struct pt_regs *regs, uint64_t scause);
 
 void trap_handler(uint64_t scause, uint64_t sepc, struct pt_regs *regs) {
 
-    // Log("[S] the scause is %lx\n", scause);
+    Log("[S] the scause is %lx\n", scause);
     if (scause & (0x8000000000000000)) {
         if (scause == 0x8000000000000005) {
             // printk("[S] is time interrupt\n");
