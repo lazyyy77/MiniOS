@@ -4,7 +4,7 @@
 #include "defs.h"
 #include "../include/proc.h"
 #include <stdint.h>
-#include "syscall.h"
+#include "../include/syscall.h"
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -12,14 +12,14 @@ extern char _sramdisk[];
 extern struct task_struct *current;
 // extern struct vm_area_struct *find_vma(struct mm_struct *mm, uint64_t addr);
 extern void create_mapping(uint64_t *pgtbl, uint64_t va, uint64_t pa, uint64_t sz, uint64_t perm);
-extern uint64_t sys_write(unsigned int fd, const char* buf, size_t count);
+extern uint64_t sys_write(unsigned int fd, const char* buf, uint64_t len);
 extern uint64_t do_fork(struct pt_regs *regs);
 extern uint64_t sys_getpid();
 void do_page_fault(struct pt_regs *regs, uint64_t scause);
 
 void trap_handler(uint64_t scause, uint64_t sepc, struct pt_regs *regs) {
 
-    Log("[S] the scause is %lx\n", scause);
+    // Log("[S] the scause is %lx\n", scause);
     if (scause & (0x8000000000000000)) {
         if (scause == 0x8000000000000005) {
             // printk("[S] is time interrupt\n");
@@ -47,6 +47,9 @@ void trap_handler(uint64_t scause, uint64_t sepc, struct pt_regs *regs) {
                 regs->sepc += 4;
             } else if (regs->a7 == SYS_CLONE){
                 regs->a0 = do_fork(regs);
+                regs->sepc += 4;
+            } else if (regs->a7 == 63) {
+                regs->a0 = sys_read((uint64_t)regs->a0, (char*)regs->a1, (uint64_t)regs->a2);
                 regs->sepc += 4;
             } else {
                 Err("Unimplemented Syscall!\n");

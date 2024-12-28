@@ -15,6 +15,12 @@
         "stdint.h": "c",
         "printk.h": "c",
         "proc.h": "c",
-        "compare": "c"
+        "compare": "c",
+        "string.h": "c",
+        "sbi.h": "c",
+        "syscall.h": "c",
+        "fs.h": "c",
+        "defs.h": "c",
+        "stddef.h": "c"
     }
 }

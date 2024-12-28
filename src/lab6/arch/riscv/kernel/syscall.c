@@ -3,6 +3,7 @@
 #include "stddef.h"
 #include "defs.h"
 #include "../include/proc.h"
+#include "fs.h"
 
 extern void __ret_from_fork();
 extern uint64_t swapper_pg_dir[];
@@ -15,14 +16,36 @@ extern struct sbiret sbi_debug_console_write_byte(uint8_t byte);
 extern void create_mapping(uint64_t *pgtbl, uint64_t va, uint64_t pa, uint64_t sz, uint64_t perm);
 
 
-uint64_t sys_write(unsigned int fd, const char* buf, size_t count){
-    uint64_t cnt = 0;
-    while (cnt < count){
-        printk("%c", buf[cnt]);
-        cnt++;
+uint64_t sys_write(unsigned int fd, const char* buf, uint64_t len){
+    int64_t ret;
+    struct file *file = &(current->files->fd_array[fd]);
+    if (file->opened == 0) {
+        printk("file not opened\n");
+        return ERROR_FILE_NOT_OPEN;
+    } else {
+        if (file->perms == FILE_WRITABLE){
+            file->write(file, buf, len);
+        }
     }
-    return cnt;
+    return ret;
 }
+
+uint64_t sys_read(unsigned int fd, const char* buf, uint64_t len){
+    int64_t ret;
+    struct file *file = &(current->files->fd_array[fd]);
+    if (file->opened == 0) {
+        printk("file not opened\n");
+        return ERROR_FILE_NOT_OPEN;
+    } else {
+        if ((fd == 1 || fd == 2) && file->perms == FILE_WRITABLE){
+            file->write(file, buf, len);
+        } else if (fd == 0 && file->perms == FILE_READABLE){
+            ret = file->read(file, buf, len);
+        }
+    }
+    return ret;
+}
+
 
 uint64_t sys_getpid(){
     return current->pid;

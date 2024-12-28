@@ -1,6 +1,6 @@
 #include "fs.h"
 #include "vfs.h"
-#include "sbi.h"
+#include "../arch/riscv/include/sbi.h"
 #include "defs.h"
 #include "printk.h"
 
@@ -8,15 +8,26 @@ char uart_getchar() {
     char ret;
     while (1) {
         struct sbiret sbi_result = sbi_debug_console_read(1, ((uint64_t)&ret - PA2VA_OFFSET), 0);
+        // printk("sbiresult.error: %lx, sbiresult.value: %lx\n", sbi_result.error, sbi_result.value);
         if (sbi_result.error == 0 && sbi_result.value == 1) {
             break;
         }
     }
+    // printk("the ret is: %c\n", ret);
     return ret;
 }
 
 int64_t stdin_read(struct file *file, void *buf, uint64_t len) {
     // todo: use uart_getchar() to get `len` chars
+    uint64_t remain = len;
+    char ret;
+    char *char_buf = (char *)buf;
+    while(remain--){
+        ret = uart_getchar();
+        *char_buf = ret;
+        char_buf++;
+    }
+    return len;
 }
 
 int64_t stdout_write(struct file *file, const void *buf, uint64_t len) {
@@ -29,5 +40,10 @@ int64_t stdout_write(struct file *file, const void *buf, uint64_t len) {
 }
 
 int64_t stderr_write(struct file *file, const void *buf, uint64_t len) {
-    // todo
+    char to_print[len + 1];
+    for (int i = 0; i < len; i++) {
+        to_print[i] = ((const char *)buf)[i];
+    }
+    to_print[len] = 0;
+    return printk(buf);
 }

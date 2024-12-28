@@ -32,7 +32,7 @@ void virtio_blk_queue_init() {
     uint64_t size_of_avail = sizeof(struct virtio_avail);
     uint64_t size_of_used = sizeof(struct virtio_used);
 
-    uint64_t pages = alloc_pages(3);
+    uint64_t pages = (uint64_t)alloc_pages(3);
     virtio_blk_ring.desc = (struct virtio_desc*)(pages);
     virtio_blk_ring.avail = (struct virtio_avail*)(pages + PGSIZE);
     virtio_blk_ring.used = (struct virtio_used*)(pages + 2*PGSIZE);

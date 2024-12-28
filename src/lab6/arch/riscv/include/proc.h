@@ -8,6 +8,7 @@
 #include "mm.h"
 #include "defs.h"
 #include "elf.h"
+#include "fs.h"
 
 #if TEST_SCHED
 #define NR_TASKS (1 + 32)    // 测试时线程数量
@@ -93,6 +94,7 @@ struct task_struct {
     struct thread_struct thread;
     uint64_t *pgd;  // 用户态页表
     struct mm_struct mm;
+    struct files_struct *files;
 };
 
 /*

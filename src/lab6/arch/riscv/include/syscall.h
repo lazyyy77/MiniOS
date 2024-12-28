@@ -14,7 +14,8 @@
 #define SYS_GETPID  172
 #define SYS_CLONE   220
 
-uint64_t sys_write(unsigned int fd, const char* buf, size_t count);
+uint64_t sys_write(unsigned int fd, const char* buf, uint64_t len);
+uint64_t sys_read(unsigned int fd, const char* buf, uint64_t len);
 
 uint64_t do_fork(struct pt_regs *regs);
 

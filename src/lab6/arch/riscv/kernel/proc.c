@@ -96,7 +96,7 @@ void task_init() {
         }
         load_program(task[i]);
         do_mmap(&task[i]->mm, USER_END - PGSIZE, PGSIZE, -1, -1, VM_ANON | VM_READ | VM_WRITE);
-
+        task[i]->files = file_init();
         printk("after task[%lu] initialize\n", i);
     }
 

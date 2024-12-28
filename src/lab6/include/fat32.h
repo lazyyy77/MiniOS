@@ -3,6 +3,7 @@
 
 #include "defs.h"
 #include "fs.h"
+#include "string.h"
 
 struct __attribute__((packed)) fat32_bpb {
     uint8_t jmp_boot[3];

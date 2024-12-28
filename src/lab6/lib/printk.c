@@ -17,6 +17,14 @@ int putc(int c) {
     })
 #endif
 
+#if LOG
+#define Log(format, ...) \
+    printk("\33[1;35m[%s,%d,%s] " format "\33[0m\n", \
+        __FILE__, __LINE__, __func__, ## __VA_ARGS__)
+#else
+#define Log(format, ...);
+#endif
+
 struct fmt_flags {
     bool in_format;
     bool longflag;
